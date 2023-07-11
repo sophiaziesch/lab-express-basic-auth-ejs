@@ -26,4 +26,39 @@ router.post("/signup", async (req, res, next) => {
 	}
 });
 
+/* GET Login page */
+router.get("/login", (req, res, next) => {
+	res.render("auth/login");
+});
+
+/* POST data to check if user exists */
+router.post("/login", async (req, res, next) => {
+	try {
+		const currUser = req.body;
+		const checkUser = await User.find({ email: currUser.email.toLowerCase() });
+		if (checkUser) {
+			if (bcrypt.compareSync(currUser.password, checkUser.passwordHash)) {
+				const logUser = { ...checkUser._doc };
+				delete logUser.passwordHash;
+			} else {
+				res.render("auth/login", {
+					errorMessage: "User and password do not match.",
+					payload: { email: currUser.email },
+				});
+			}
+		} else {
+			res.render("auth/login", {
+				errorMessage: "User and password do not match.",
+				payload: { email: currUser.email },
+			});
+		}
+	} catch (error) {
+		console.log(error);
+		res.render("/auth/login", {
+			errorMessage: "There was an error on the server",
+			payload: { email: email.currUser },
+		});
+	}
+});
+
 module.exports = router;
